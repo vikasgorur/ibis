@@ -178,32 +178,3 @@ export const queenBlockers = (b: Chess, pl: Place) => pieceBlockers(b, pl, [
     [1, 0], [-1, 0], [0, 1], [0, -1]
 ])
 
-/**
- * Return the list of `Place`s that support a given `Place`.
- * 
- * "support" means it can capture the piece on `target`, if an enemy piece
- * was on it.
- */
-export function supporters(b: Chess, target: Place): Place[] {
-    let result: Place[] = []
-    let ourPlaces = places(b, target.color)
-
-    /**
-     * For each piece type, a function that returns true if `pl` supports `target`.
-     */
-    const PIECE_SUPPORTS: { [key in PieceSymbol]: (b: Chess, pl: Place, target: Place) => Boolean } = {
-        p: (b, pl, target) => pawnAttacks(pl.square, pl.color).includes(target.square),
-        n: (b, pl, target) => knightAttacks(pl.square).includes(target.square),
-        b: (b, pl, target) => bishopBlockers(b, pl).includes(target.square),
-        r: (b, pl, target) => rookBlockers(b, pl).includes(target.square),
-        q: (b, pl, target) => queenBlockers(b, pl).includes(target.square),
-        k: (b, pl, target) => kingAttacks(pl.square).includes(target.square)
-    }
-    for (let p of ourPlaces) {
-        if (p.square != target.square
-            && PIECE_SUPPORTS[p.type](b, p, target)) {
-            result.push(p)
-        }
-    }
-    return result
-}

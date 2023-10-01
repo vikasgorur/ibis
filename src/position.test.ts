@@ -1,6 +1,7 @@
 import _ from 'lodash'
-import { Chess, Color } from 'chess.js'
+import { Chess, Square } from 'chess.js'
 import {
+    Place,
     places, material, deltaSet,
     pawnAttacks, knightAttacks, bishopAttacks, rookAttacks, queenAttacks,
     squaresToEdge, bishopBlockers,
@@ -142,16 +143,5 @@ describe('bishopBlockers', () => {
         expect(_.sortBy(bishopBlockers(b, { square: 'c1', type: 'b', color: 'w' }))).toEqual(_.sortBy([
             'b2', 'd2'
         ]))
-    })
-})
-
-describe('supporters', () => {
-    // 1. e4 e5 2. Nf3 Nf6
-    const VIENNA_4 = 'rnbqkb1r/pppp1ppp/5n2/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR w KQkq - 2 3'
-
-    it('should return two pawns for knight on c3', () => {
-        const b = new Chess(VIENNA_4)
-        expect(supporters(b, { square: 'c3', type: 'n', color: 'w' }).map(p => p.square)).toEqual(['b2', 'd2'])
-        expect(supporters(b, { square: 'c3', type: 'n', color: 'w' }).map(p => p.type)).toEqual(['p', 'p'])
     })
 })
