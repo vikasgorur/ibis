@@ -47,6 +47,8 @@ type Delta = [number, number]
 
 const fileNumber = (char: string) => char.charCodeAt(0) - 'a'.charCodeAt(0)
 const rankNumber = (char: string) => char.charCodeAt(0) - '1'.charCodeAt(0)
+const coordinates = (sq: Square) => [fileNumber(sq[0]), rankNumber(sq[1])]
+
 const fileChar = (num: number) => String.fromCharCode(num + 'a'.charCodeAt(0))
 const rankChar = (num: number) => String.fromCharCode(num + '1'.charCodeAt(0))
 
@@ -56,11 +58,12 @@ const rankChar = (num: number) => String.fromCharCode(num + '1'.charCodeAt(0))
  */
 export function deltaSet(sq: Square, deltas: Delta[]): Square[] {
     let result: Square[] = []
+    let [file, rank] = coordinates(sq)
+
     for (let d of deltas) {
-        let [file, rank] = sq.split('')
         let [df, dr] = d
-        let f = fileNumber(file) + df
-        let r = rankNumber(rank) + dr
+        let f = file + df
+        let r = rank + dr
         if (f >= 0 && f <= 7 && r >= 0 && r <= 7) {
             result.push(`${fileChar(f)}${rankChar(r)}` as Square)
         }
@@ -119,4 +122,88 @@ export function rookAttacks(sq: Square): Square[] {
  */
 export function queenAttacks(sq: Square): Square[] {
     return _.union(bishopAttacks(sq), rookAttacks(sq))
+}
+
+/**
+ * Return the squares that are attacked by a king.
+ */
+export function kingAttacks(sq: Square): Square[] {
+    let deltas: Delta[] = [
+        [-1, 1], [0, 1], [1, 1],
+        [-1, 0], [1, 0],
+        [-1, -1], [0, -1], [1, -1],
+    ]
+    return deltaSet(sq, deltas)
+}
+
+/**
+ * Return the list of squares on a path from a square to an edge, given a delta (direction of movement).
+ */
+export function squaresToEdge(sq: Square, delta: Delta): Square[] {
+    let result: Square[] = []
+    let [df, dr] = delta
+    let [file, rank] = coordinates(sq)
+    let f = file + df
+    let r = rank + dr
+
+    while (f >= 0 && f <= 7 && r >= 0 && r <= 7) {
+        result.push(`${fileChar(f)}${rankChar(r)}` as Square)
+        f += df
+        r += dr
+    }
+    return result
+}
+
+/**
+ * Return the first piece that blocks the bishop's path, in all four directions.
+ */
+export function pieceBlockers(b: Chess, pl: Place, directions: Array<Delta>): Square[] {
+    let result: Square[] = []
+
+    for (let d of directions) {
+        for (let sq of squaresToEdge(pl.square, d as Delta)) {
+            if (b.get(sq)) {
+                result.push(sq)
+                break
+            }
+        }
+    }
+    return result 
+}
+
+export const bishopBlockers = (b: Chess, pl: Place) => pieceBlockers(b, pl, [[1, 1], [-1, 1], [1, -1], [-1, -1]])
+export const rookBlockers = (b: Chess, pl: Place) => pieceBlockers(b, pl, [[1, 0], [-1, 0], [0, 1], [0, -1]])
+export const queenBlockers = (b: Chess, pl: Place) => pieceBlockers(b, pl, [
+    [1, 1], [-1, 1], [1, -1], [-1, -1],
+    [1, 0], [-1, 0], [0, 1], [0, -1]
+])
+
+/**
+ * Return the list of `Place`s that support a given `Place`.
+ * 
+ * "support" means it can capture the piece on `target`, if an enemy piece
+ * was on it.
+ */
+export function supporters(b: Chess, target: Place): Place[] {
+    let result: Place[] = []
+    let ourPlaces = places(b, target.color)
+
+    /**
+     * For each piece type, a function that returns true if `pl` supports `target`.
+     */
+    const PIECE_SUPPORTS: { [key in PieceSymbol]: (b: Chess, pl: Place, target: Place) => Boolean } = {
+        p: (b, pl, target) => pawnAttacks(pl.square, pl.color).includes(target.square),
+        n: (b, pl, target) => knightAttacks(pl.square).includes(target.square),
+        b: (b, pl, target) => bishopBlockers(b, pl).includes(target.square),
+        r: (b, pl, target) => rookBlockers(b, pl).includes(target.square),
+        q: (b, pl, target) => queenBlockers(b, pl).includes(target.square),
+        k: (b, pl, target) => kingAttacks(pl.square).includes(target.square)
+    }
+    for (let p of ourPlaces) {
+        if (p.square != target.square
+            && PIECE_SUPPORTS[p.type](b, p, target)) {
+            result.push(p)
+        }
+    }
+    return result
 }

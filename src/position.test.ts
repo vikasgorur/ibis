@@ -3,6 +3,8 @@ import { Chess, Color } from 'chess.js'
 import {
     places, material, deltaSet,
     pawnAttacks, knightAttacks, bishopAttacks, rookAttacks, queenAttacks,
+    squaresToEdge, bishopBlockers,
+    supporters
 } from './position'
 
 describe('occupiedSquares', () => {
@@ -117,5 +119,39 @@ describe('queenAttacks', () => {
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7',
             'g7', 'f6', 'e5', 'd4', 'c3', 'b2', 'a1',
         ]))
+    })
+})
+
+describe('squaresToEdge', () => {
+    it('should return the correct squares for a1 (rook up)', () => {
+        expect(squaresToEdge('a1', [0, 1])).toEqual([
+            'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8',
+        ])
+    })
+
+    it('should return the correct squares for a1 (rook right)', () => {
+        expect(squaresToEdge('a1', [1, 0])).toEqual([
+            'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1',
+        ])
+    })
+})
+
+describe('bishopBlockers', () => {
+    it('should return the correct blockers for c3', () => {
+        const b = new Chess()
+        expect(_.sortBy(bishopBlockers(b, { square: 'c1', type: 'b', color: 'w' }))).toEqual(_.sortBy([
+            'b2', 'd2'
+        ]))
+    })
+})
+
+describe('supporters', () => {
+    // 1. e4 e5 2. Nf3 Nf6
+    const VIENNA_4 = 'rnbqkb1r/pppp1ppp/5n2/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR w KQkq - 2 3'
+
+    it('should return two pawns for knight on c3', () => {
+        const b = new Chess(VIENNA_4)
+        expect(supporters(b, { square: 'c3', type: 'n', color: 'w' }).map(p => p.square)).toEqual(['b2', 'd2'])
+        expect(supporters(b, { square: 'c3', type: 'n', color: 'w' }).map(p => p.type)).toEqual(['p', 'p'])
     })
 })
