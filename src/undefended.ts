@@ -53,3 +53,50 @@ export function unsupportedPlaces(b: Chess, c: Color): Place[] {
     }
     return result
 }
+
+/**
+ * For each piece type, a function that returns true if `pl` attacks/supports `target`.
+ */
+const PIECE_ATTACKS: { [key in PieceSymbol]: (b: Chess, pl: Place, target: Place) => Boolean } = {
+    p: (b, pl, target) => pawnAttacks(pl.square, pl.color).includes(target.square),
+    n: (b, pl, target) => knightAttacks(pl.square).includes(target.square),
+    b: (b, pl, target) => bishopBlockers(b, pl).includes(target.square),
+    r: (b, pl, target) => rookBlockers(b, pl).includes(target.square),
+    q: (b, pl, target) => queenBlockers(b, pl).includes(target.square),
+    k: (b, pl, target) => kingAttacks(pl.square).includes(target.square)
+}
+
+export const oppositeColor = (c: Color) => c == 'w' ? 'b' : 'w'
+
+/**
+ * Return the list of attackers of a given `Place`.
+ */
+export function attackers(b: Chess, pl: Place): Place[] {
+    let result: Place[] = []
+    let theirPlaces = places(b, oppositeColor(pl.color))
+
+    for (let p of theirPlaces) {
+        if (PIECE_ATTACKS[p.type](b, p, pl)) {
+            result.push(p)
+        }
+    }
+    return result
+}
+
+/**
+ * Return the places that are "simply" hanging:
+ *  - not supported by any piece
+ *  - attacked by an enemy piece
+ */
+
+export function simplyHanging(b: Chess, c: Color): Place[] {
+    let result: Place[] = []
+    let ourPlaces = places(b, c)
+    for (let p of ourPlaces) {
+        if (supporters(b, p).length == 0
+            && attackers(b, p).length > 0) {
+            result.push(p)
+        }
+    }
+    return result
+}

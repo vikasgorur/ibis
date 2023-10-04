@@ -1,7 +1,7 @@
 import { Chess, Square } from 'chess.js'
 import _ from 'lodash'
 import { Place } from './position'
-import { supporters, unsupportedPlaces } from './undefended'
+import { oppositeColor, supporters, unsupportedPlaces, attackers, simplyHanging } from './undefended'
 
 const place = (b: Chess, sq: Square) => _.merge({ square: sq }, b.get(sq)) as Place
 
@@ -55,6 +55,36 @@ describe('unsupportedPlaces', () => {
         // @ts-ignore
         expect(unsupportedPlaces(b, 'w')).toBePlaces([
             place(b, 'e4'), place(b, 'a1'), place(b, 'h1')
+        ])
+    })
+})
+
+describe('oppositeColor', () => {
+    it('should return the opposite color', () => {
+        expect(oppositeColor('w')).toBe('b')
+        expect(oppositeColor('b')).toBe('w')
+    })
+})
+
+// 1. e4 e5 2. Qh5
+const QUEEN_BLUNDER = 'rnbqkbnr/ppp1pppp/8/3p4/4P1Q1/8/PPPP1PPP/RNB1KBNR b KQkq - 1 2'
+
+describe('attackers', () => {
+    it("should return black's light square bishop as attacker of the queen", () => {
+        const b = new Chess(QUEEN_BLUNDER)
+        // @ts-ignore
+        expect(attackers(b, place(b, 'g4'))).toBePlaces([
+            place(b, 'c8'),
+        ])
+    })
+})
+
+describe('simplyHanging', () => {
+    it('should return the queen', () => {
+        const b = new Chess(QUEEN_BLUNDER)
+        // @ts-ignore
+        expect(simplyHanging(b, 'w')).toBePlaces([
+            place(b, 'g4')
         ])
     })
 })
