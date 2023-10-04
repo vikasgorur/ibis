@@ -1,4 +1,4 @@
-import { Chess, PieceSymbol } from 'chess.js'
+import { Chess, PieceSymbol, Color } from 'chess.js'
 import {
     Place,
     places,
@@ -34,6 +34,20 @@ export function supporters(b: Chess, target: Place): Place[] {
     for (let p of ourPlaces) {
         if (p.square != target.square
             && PIECE_SUPPORTS[p.type](b, p, target)) {
+            result.push(p)
+        }
+    }
+    return result
+}
+
+/**
+ * Return all the `Places`s of a given color that are not supported by any other piece.
+ */
+export function unsupportedPlaces(b: Chess, c: Color): Place[] {
+    let result: Place[] = []
+    let ourPlaces = places(b, c)
+    for (let p of ourPlaces) {
+        if (supporters(b, p).length == 0) {
             result.push(p)
         }
     }
