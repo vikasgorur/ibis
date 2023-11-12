@@ -22,6 +22,9 @@ const PIECE_VALUES: PieceValues = {
     k: 0,
 }
 
+/**
+ * Return all the `Places`s of a given color.
+ */
 export function places(b: Chess, color: Color): Place[] {
     let result: Place[] = []
     for (let pl of _.flatten(b.board())) {
@@ -33,11 +36,10 @@ export function places(b: Chess, color: Color): Place[] {
 }
 
 export function material(b: Chess, color: Color): number {
-    let result = 0
-    for (let pl of places(b, color)) {
-        result += PIECE_VALUES[pl.type]
-    }
-    return result
+    return places(b, color).reduce(
+        (acc, pl) => acc + PIECE_VALUES[pl.type],
+        0
+    )
 }
 
 /**

@@ -5,7 +5,6 @@ import {
     places, material, deltaSet,
     pawnAttacks, knightAttacks, bishopAttacks, rookAttacks, queenAttacks,
     squaresToEdge, bishopBlockers,
-    supporters
 } from './position'
 
 describe('occupiedSquares', () => {

@@ -88,3 +88,15 @@ describe('simplyHanging', () => {
         ])
     })
 })
+
+describe('performance measurements', () => {
+    it('should run simplyHanging quickly', () => {
+        const b = new Chess(QUEEN_BLUNDER)
+        const startTime = performance.now()
+        simplyHanging(b, 'w')
+        const endTime = performance.now()
+        const elapsedTime = endTime - startTime
+        console.log(`Elapsed time: ${elapsedTime} ms`)
+        expect(elapsedTime).toBeLessThan(5) // ms
+    })
+})
